@@ -1,0 +1,357 @@
+---
+title: "Cyclist Documentaion"
+output:
+  html_document: default
+  pdf_document: default
+date: '2022-05-23'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+options(repos = list(CRAN="http://cran.rstudio.com/"))
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+Before we start creating data frames in R we need to find the exact location from where R studio is going to fetch the files. To do this run the following command to get the present working directory. 
+
+```{r}
+getwd()
+```
+
+Then we are going to start adding the csv files in R Studio as data frames so that we can make use of packages to manipulate and clean data. We are using header = TRUE in the first data frame because we want to include the column names. Since all the csv files have same 13 columns of the same name I skipped the header = TRUE for the remaining 11 dfs.  
+
+```{r}
+df1 <- read.csv("D:/Saahil Study/Coursera/Google Data Analytics Certification/Course 8 - Capstone project/Yearly Cyclist Data/202101-divvy-tripdata.csv", header = TRUE, sep = ",")
+
+df2 <- read.csv("D:/Saahil Study/Coursera/Google Data Analytics Certification/Course 8 - Capstone project/Yearly Cyclist Data/202102-divvy-tripdata.csv", sep = ",")
+
+df3 <- read.csv("D:/Saahil Study/Coursera/Google Data Analytics Certification/Course 8 - Capstone project/Yearly Cyclist Data/202103-divvy-tripdata.csv", sep = ",")
+
+df4 <- read.csv("D:/Saahil Study/Coursera/Google Data Analytics Certification/Course 8 - Capstone project/Yearly Cyclist Data/202104-divvy-tripdata.csv", sep = ",")
+
+df5 <- read.csv("D:/Saahil Study/Coursera/Google Data Analytics Certification/Course 8 - Capstone project/Yearly Cyclist Data/202105-divvy-tripdata.csv", sep = ",")
+
+df6 <- read.csv("D:/Saahil Study/Coursera/Google Data Analytics Certification/Course 8 - Capstone project/Yearly Cyclist Data/202106-divvy-tripdata.csv", sep = ",")
+
+df7 <- read.csv("D:/Saahil Study/Coursera/Google Data Analytics Certification/Course 8 - Capstone project/Yearly Cyclist Data/202107-divvy-tripdata.csv", sep = ",")
+
+df8 <- read.csv("D:/Saahil Study/Coursera/Google Data Analytics Certification/Course 8 - Capstone project/Yearly Cyclist Data/202108-divvy-tripdata.csv", sep = ",")
+
+df9 <- read.csv("D:/Saahil Study/Coursera/Google Data Analytics Certification/Course 8 - Capstone project/Yearly Cyclist Data/202109-divvy-tripdata.csv", sep = ",")
+
+df10 <- read.csv("D:/Saahil Study/Coursera/Google Data Analytics Certification/Course 8 - Capstone project/Yearly Cyclist Data/202110-divvy-tripdata.csv", sep = ",")
+
+df11 <- read.csv("D:/Saahil Study/Coursera/Google Data Analytics Certification/Course 8 - Capstone project/Yearly Cyclist Data/202111-divvy-tripdata.csv", sep = ",")
+
+df12 <- read.csv("D:/Saahil Study/Coursera/Google Data Analytics Certification/Course 8 - Capstone project/Yearly Cyclist Data/202112-divvy-tripdata.csv", sep = ",")
+```
+
+Now that we have 12 data frames for 12 csv files, we need to find a way to combine these dataframes into 1 for ease of analysis. For this we will use the rbind() function as below:
+
+```{r}
+combined_dataframe <- rbind(df1, df2, df3, df4, df5, df6, df7, df8, df9, df10, df11, df12)
+```
+
+To make sure that all the dfs are one, we use the str() function as below:
+
+```{r}
+str(combined_dataframe)
+```
+
+You can also use the str() function as below.
+
+```{r}
+str(combined_dataframe)
+```
+
+To get the dimensions of your df use the dim() function.
+
+```{r}
+dim(combined_dataframe)
+```
+
+You can now see that we have 5.6 million rows and 13 variables. Variables are column names in R.
+
+If you randomly inspect the data, you will find that there are blank values in columns start_station_name, start_station_id, end_station_name, end_station_id. We don't want blank values in our analysis as it can create fault analysis. It is always good to keep you data complete and clean. 
+
+A good metric which can help you in checking for data is 
+R - Reliability
+O - Originality
+C - Comprehensive
+C - Current
+C - Cited
+
+To do this we will select only the data that has complete rows.
+
+```{r}
+combined_dataframe <- combined_dataframe[complete.cases(combined_dataframe), ]
+```
+
+TO check if the command was successful, use the str() function.
+
+```{r}
+str(combined_dataframe)
+```
+
+If you observe originally their were 5595063 rows.
+
+After selecting only the complete rows now their are only 5590292.
+
+Which means 4771 rows were omitted as they had some blank values.
+
+The most important part when working with any data sets is the date and time functionality. I wanted to calculate the trip duration time by simply subtracting ended_at and started_at column. But the data types for both these columns is "chr" and we cannot perform calculations on "chr" columns. SO converted it to a valid datetime format first using the the anytime() package.
+
+```{r}
+install.packages("anytime")
+library(anytime)
+combined_dataframe$ended_at <- anytime(combined_dataframe$ended_at)
+```
+
+```{r}
+combined_dataframe$started_at <- anytime(combined_dataframe$started_at)
+```
+
+Check if the command has been run successfully by using the glimpse() function. It is always a good practice to view the data after manipulating it. 
+
+```{r}
+str(combined_dataframe)
+```
+
+The datatype has been changed from chr to dttm Successful.
+
+It's time to do our original task which was calculating the trip duration. We will do this by. 
+
+```{r}
+combined_dataframe <- combined_dataframe %>% mutate(ride_length_secs = combined_dataframe$ended_at - combined_dataframe$started_at)
+
+head(combined_dataframe)
+```
+
+Get the day of the week.
+
+```{r}
+combined_dataframe <- combined_dataframe %>% mutate(day_of_week = weekdays(combined_dataframe$started_at))
+colnames(combined_dataframe)
+```
+
+I cleaned up the 'started_at' column by separating the date and time.
+
+This will make for easier analysis further on. In order to do this, we will use the separate function.
+
+```{r}
+combined_dataframe <- separate(combined_dataframe,"started_at",into=c('start_date','start_time'), sep=' ')
+```
+
+Similarly for 'ended_at' column by separating date and time.  
+```{r}
+combined_dataframe <- separate(combined_dataframe,"ended_at",into=c('end_date','end_time'), sep=' ')
+```
+
+```{r}
+str(combined_dataframe)
+```
+
+To calculate the minimum ride length I have used the min function. 
+
+```{r}
+min_ride <- min(combined_dataframe$ride_length_secs)
+min_ride
+```
+
+For max ride we use the max function. 
+
+```{r}
+max_ride <- max(combined_dataframe$ride_length_secs)
+max_ride
+```
+
+We can see that the minimum ride length has negative values which is not true. So we consider only values greater than 0.
+
+```{r}
+combined_dataframe <- combined_dataframe[combined_dataframe$ride_length_secs > 0, ]
+combined_dataframe
+```
+
+Let's now calculate the cumber of casual and members.
+
+```{r}
+table(combined_dataframe['member_casual'])
+```
+
+
+## Data Visualization
+Creating plots after organizing and analyzing our data. 
+
+First , we will create Pie chart showing the percentage of member and casual riders.
+
+```{r}
+total_number_of_users <- c(2015727 , 2599808)
+pie_labels <- c("casual", "members")
+colors <- c("#FFFF00", "#00ffff")
+pie(total_number_of_users,pie_labels, col=colors, main = "Total Users")
+legend("topright", pie_labels, fill = colors)
+```
+From the above pie chart it is clear that the majority of riders are members.
+
+Now the number of riders using the cycle per day of the week. We will compare the Annual Vs. Members here to see who rides the most.
+
+```{r}
+  ggplot(data=combined_dataframe) + geom_bar(mapping=aes(x=day_of_week), fill="purple") +
+  ggtitle("Annual Vs Members Riding Pattern") +
+  facet_wrap(~member_casual) + 
+  theme(axis.text.x=element_text(angle=45))
+```
+If we observe the two bar charts then we can infer that members are using the cycle almost at constant numbers every day of the week with "Wednesday" being the highest amount of riders. 
+
+Similarly, for casual riders, Weekends are most popular.
+
+Quick Stats for 
+
+```{r}
+ride_summary <- 
+  combined_dataframe %>%
+  group_by(member_casual) %>%
+  summarize(average_ride_time=mean(ride_length_secs),
+            min_ride_length=min(ride_length_secs),
+            max_ride_length=max(ride_length_secs))
+ride_summary
+```
+
+I wanted to know which start station is most and least popular.
+
+```{r}
+combined_dataframe %>% count(start_station_name, sort = TRUE)
+```
+Most popular start station is Streeter Dr & Grand Ave : 690784
+
+Least Popular Start station is Whipple St & Irving Park Rd : 1
+
+##Analysis and Findings
+
+Eventhough we have more members than casual users of the app, casual users actually ride for longer than members. The average ride time of a casual user is 1814.4844 secs while that of a member is 801.3467 secs.
+
+The min ride length is the same for both at 1 second, and
+
+the max ride length of a casual user is 3,356,649 secs seconds and the max ride length of a member is 89,996 secs.
+
+We can also infer that Saturday and Wednesday are the two most popular days of the biking .
+
+
+## Recommendations
+
+After the analysis, I have some recommendations for the Cyclistics marketing team:
+1) Since July, August and September are the most popular months for biking, we can run some discounts and compare how much money will they be saving if they convert their subscription from casual to members.
+
+2) Some extra analysis such as health data, distance data, or comparing their trip duration and distance to riders in their area. Additionally, there can be some free coupons or gifts if a person rode the cycle for maximum distance in a specific period of time.
+
+3) For summers, we are already having lot of riders. So special discounts and gifts can be introduced to encourage people to use the cycle in winters. Some stats like the cost savings on fuel and health benefits from riding a cycle for 5 kms/day can also increase the active riders in winters.  
+
+4) As seen and calculated from data, weekends are the most popular days for cycling. For weekdays, there can be a scheme for consistency points which they can claim after to save money on subscription. For example, if you ride consistently for 4 days in a row then you will save 20% on your next ride. 
+
+
+## Metadata
+1. A clear statement of the business task.
+   - Marketing strategy for increasing the number of memberships in order to grow business. 
+
+2. A description of all data sources used.
+  - Public Data. Used excel sheets having 13 columns and and 5.6 million rows. 
+
+3. Documentation of any cleaning or manipulation of data.
+   - Data cleaning and manipulation has been provided above.
+   
+4. A summary of your analysis.
+   - Eventhough we have more members than casual users of the app, casual users actually ride for longer than members. The average ride time of a casual user is   1814.4844 secs while that of a member is 801.3467 secs. The min ride length is the same for both at 1 second, and the max ride length of a casual user is 3,356,649 secs seconds and the max ride length of a member is 89,996 secs. We can also infer that Saturday and Wednesday are the two most popular days of the biking 
+
+5. Supporting visualizations and key findings.
+   - Bar charts and Pie charts have been provided to get a hang of what data is telling us.
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
